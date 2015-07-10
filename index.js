@@ -29,7 +29,8 @@ module.exports = function(options){
         var compiled;
         var contents = String(file.contents);
         if(opts.client){
-          compiled = jade.compileClient(contents, opts);
+          opts.name = path.basename(file.path, ".jade")
+          compiled = jade.compileFileClient(file.path, opts);
         } else {
           compiled = jade.compile(contents, opts)(opts.locals || opts.data);
         }
