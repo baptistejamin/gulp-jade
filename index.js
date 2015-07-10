@@ -1,6 +1,7 @@
 'use strict';
 
 var extend = require('util')._extend;
+var path = require('path')
 
 var through = require('through2');
 var defaultJade = require('jade');
