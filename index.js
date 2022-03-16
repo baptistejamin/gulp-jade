@@ -8,6 +8,8 @@ var defaultJade = require('jade');
 var ext = require('gulp-util').replaceExtension;
 var PluginError = require('gulp-util').PluginError;
 
+var cache = {};
+
 module.exports = function(options){
   var opts = extend({}, options);
   var jade = opts.jade || defaultJade;
@@ -27,15 +29,24 @@ module.exports = function(options){
 
     if(file.isBuffer()){
       try {
-        var compiled;
+        var result;
         var contents = String(file.contents);
         if(opts.client){
           opts.name = path.basename(opts.filename, ".jade")
-          compiled = jade.compileFileClient(opts.filename, opts);
+          result = jade.compileFileClient(opts.filename, opts);
         } else {
-          compiled = jade.compile(contents, opts)(opts.locals || opts.data);
+          let _cached_file = cache[file.path];
+
+          if (!_cached_file || _cached_file.mtime !== file.mtime) {
+            cache[file.path] = {
+              compiled: jade.compile(contents, opts),
+              mtime: file.mtime
+            }
+          }
+
+          result = cache[file.path].compiled(opts.locals || opts.data);
         }
-        file.contents = new Buffer(compiled);
+        file.contents = new Buffer(result);
       } catch(e) {
         return cb(new PluginError('gulp-jade', e));
       }
